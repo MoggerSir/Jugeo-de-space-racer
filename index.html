@@ -43,7 +43,7 @@ var EstadosGalaxyGem = {
     preload: function() {
 
         // mi parte
-        game.load.image('fondo',          'assets/image.png');
+        game.load.image('fondo',          'assets/fondo.png');
         game.load.image('platilloabajo',  'platilloabajo.png');
         game.load.image('platilloarriba', 'platilloarriba.png');
         game.load.image('nave',           'nave.png');
@@ -67,7 +67,9 @@ var EstadosGalaxyGem = {
 
     create: function() {
         // Fondo y galaxia decorativa
-        game.add.sprite(0, 0, 'fondo');
+        var miFondo = game.add.sprite(0, 0, 'fondo');
+        miFondo.width = game.width;
+        miFondo.height = game.height;
 
         this.galaxia = game.add.sprite(game.width / 2, game.height / 2, 'galaxia');
         this.galaxia.anchor.setTo(0.5);
