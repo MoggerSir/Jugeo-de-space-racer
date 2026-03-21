@@ -9,15 +9,19 @@
 </head>
 <body>
 <script src="/phaser-ce-2.9.2.min.js"></script>
+
+<!-- me encargue de ordenar el codigo y hacerlo mas legible, tipo que horrible era buscar algo y no encontrarlo
+    y tambien de que el juego funcionara correctamente, ya que antes no funcionaba o funcionaba raro-->
+
 <script>
 
-// ─── Constantes globales ────────────────────────────────────────────────────
+// ─── Constantes globales ────────────────────────────────────────────────────\\
 var MeteoritosTotales         = 80;
 var MeteoritosIndestructibles = 15;
 var EstrellasTotales          = 106;
 var GemasTotales              = 15;
 
-// ─── Estado principal del juego ─────────────────────────────────────────────
+// ─── Estado principal del juego ─────────────────────────────────────────────\\
 var EstadosGalaxyGem = {
 
     init: function() {
@@ -33,8 +37,11 @@ var EstadosGalaxyGem = {
         this.totalTime            = 60;
     },
 
+    //Carga de imágenes, centralice esto porque era un dolor de cabeza buscar algo y no encontrarlo,
+    // o no saber donde estaba, ahora esta todo ordenado y es mas facil encontrar lo que se busca \\
+
     preload: function() {
-        game.load.image('fondo',          'fondo.jpg');
+        game.load.image('fondo',          'assets/image.png');
         game.load.image('platilloabajo',  'platilloabajo.png');
         game.load.image('platilloarriba', 'platilloarriba.png');
         game.load.image('nave',           'nave.png');
@@ -68,7 +75,7 @@ var EstadosGalaxyGem = {
             'platilloabajo'
         );
 
-        // ── Estrellas de fondo ──────────────────────────────────────────────
+        // ── Estrellas de fondo ──────────────────────────────────────────────\\
         this.EstrellasArray = [];
         for (var i = 0; i < EstrellasTotales; i++) {
             var s = game.add.sprite(
@@ -82,7 +89,7 @@ var EstadosGalaxyGem = {
             this.EstrellasArray[i] = s;
         }
 
-        // ── Gemas ───────────────────────────────────────────────────────────
+        // ── Gemas ───────────────────────────────────────────────────────────\\
         this.GemasArray = [];
         for (var i = 0; i < GemasTotales; i++) {
             var g = game.add.sprite(
@@ -95,12 +102,12 @@ var EstadosGalaxyGem = {
             this.GemasArray[i] = g;
         }
 
-        // ── Proyectil ───────────────────────────────────────────────────────
+        // ── Proyectil ───────────────────────────────────────────────────────\\
         this.proyectil = game.add.image(game.width / 2, game.height / 2, 'proyectil');
         this.proyectil.anchor.setTo(0.5);
         this.proyectil.scale.setTo(0.7);
 
-        // ── Naves (una por dirección) ────────────────────────────────────────
+        // ── Naves (una por dirección) ────────────────────────────────────────\\
         var cx = game.width / 2;
         var cy = game.height / 2;
 
@@ -115,7 +122,7 @@ var EstadosGalaxyGem = {
         this.nave3.visible = false;
         this.nave4.visible = false;
 
-        // ── Meteoritos destructibles ─────────────────────────────────────────
+        // ── Meteoritos destructibles ─────────────────────────────────────────\\
         this.meteoritos = [];
         for (var i = 0; i < MeteoritosTotales; i++) {
             var m = game.add.sprite(
@@ -129,7 +136,7 @@ var EstadosGalaxyGem = {
             this.meteoritos[i] = m;
         }
 
-        // ── Meteoritos indestructibles ───────────────────────────────────────
+        // ── Meteoritos indestructibles ───────────────────────────────────────\\
         this.MeteoritosIndestructiblesArray = [];
         for (var i = 0; i < MeteoritosIndestructibles; i++) {
             var mi = game.add.sprite(
@@ -143,7 +150,7 @@ var EstadosGalaxyGem = {
             this.MeteoritosIndestructiblesArray[i] = mi;
         }
 
-        // ── Pool de explosiones para meteoritos ──────────────────────────────
+        // ── Pool de explosiones para meteoritos ──────────────────────────────\\
         this.explosionGroup = game.add.group();
         for (var i = 0; i < 10; i++) {
             var e = this.explosionGroup.create(0, 0, 'explosion');
@@ -159,7 +166,7 @@ var EstadosGalaxyGem = {
             e.kill();
         }
 
-        // ── Pool de explosiones para gemas ───────────────────────────────────
+        // ── Pool de explosiones para gemas ───────────────────────────────────\\
         this.explosionGroup2 = game.add.group();
         for (var i = 0; i < 5; i++) {
             var e2 = this.explosionGroup2.create(0, 0, 'explosion2');
@@ -175,7 +182,7 @@ var EstadosGalaxyGem = {
             e2.kill();
         }
 
-        // ── HUD (barra superior) ─────────────────────────────────────────────
+        // ── HUD (barra superior) ─────────────────────────────────────────────\\
         var hudBmp = game.add.bitmapData(game.width, 58);
         hudBmp.ctx.fillStyle = '#000000';
         hudBmp.ctx.fillRect(0, 0, game.width, 58);
@@ -195,7 +202,7 @@ var EstadosGalaxyGem = {
         this.timerText = game.add.text(game.width - 200, 30, 'Tiempo: ' + this.totalTime, styleAzul);
         this.timerText.anchor.setTo(0.5);
 
-        // ── Temporizador ─────────────────────────────────────────────────────
+        // ── Temporizador ─────────────────────────────────────────────────────\\
         this.timerGameOver = game.time.events.loop(Phaser.Timer.SECOND, function() {
             if (this.juegoTerminado) return;
             this.totalTime--;
@@ -207,11 +214,11 @@ var EstadosGalaxyGem = {
             }
         }, this);
 
-        // ── Teclado ───────────────────────────────────────────────────────────
+        // ── Teclado ───────────────────────────────────────────────────────────\\
         this.cursor = game.input.keyboard.createCursorKeys();
     },
 
-    // ── Helpers de colisión ──────────────────────────────────────────────────
+    // ── Helpers de colisión ──────────────────────────────────────────────────\\
     getBoundsnave: function() {
         var w = Math.abs(this.nave.width) / 2;
         var h = this.nave.height;
@@ -242,7 +249,7 @@ var EstadosGalaxyGem = {
         return true;
     },
 
-    // ── Daño y puntaje ───────────────────────────────────────────────────────
+    // ── Daño y puntaje ───────────────────────────────────────────────────────\\
     increaseScore: function() {
         this.TextoSaludNave.text = 'Salud: ' + this.SaludActualNave;
         this.MeteoritosImpactados++;
@@ -293,7 +300,7 @@ var EstadosGalaxyGem = {
         txt.anchor.setTo(0.5);
     },
 
-    // ── Dispara una explosión del pool ────────────────────────────────────────
+    // ── Dispara una explosión del pool ────────────────────────────────────────\\
     _spawnExplosion: function(group, x, y) {
         var exp = group.getFirstDead();
         if (exp) {
@@ -304,7 +311,7 @@ var EstadosGalaxyGem = {
         }
     },
 
-    // ── Loop principal ────────────────────────────────────────────────────────
+    // ── Loop principal ────────────────────────────────────────────────────────\\
     update: function() {
         if (this.juegoTerminado) return;
 
@@ -441,7 +448,7 @@ var EstadosGalaxyGem = {
         }
     }
 
-}; // fin EstadosGalaxyGem
+}; // fin EstadosGalaxyGem 'nombre original'
 
 // ─── Iniciar Phaser ──────────────────────────────────────────────────────────
 // Se usa "game" en vez de "GalaxyGem" para evitar la referencia circular
