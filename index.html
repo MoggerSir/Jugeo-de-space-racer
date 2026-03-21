@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>GalaxyGem</title>
+    <style type="text/css">
+        body { margin: 0; padding: 0; background: #060600; }
+    </style>
+</head>
+<body>
+<script src="/phaser-ce-2.9.2.min.js"></script>
+<script>
+
+// ─── Constantes globales ────────────────────────────────────────────────────
+var MeteoritosTotales         = 80;
+var MeteoritosIndestructibles = 15;
+var EstrellasTotales          = 106;
+var GemasTotales              = 15;
+
+// ─── Estado principal del juego ─────────────────────────────────────────────
+var EstadosGalaxyGem = {
+
+    init: function() {
+        game.scale.scaleMode             = Phaser.ScaleManager.SHOW_ALL;
+        game.scale.pageAlignHorizontally = true;
+        game.scale.pageAlignVertically   = true;
+
+        this.juegoTerminado       = false;
+        this.MeteoritosImpactados = 0;
+        this.PuntajeActualGema    = 0;
+        this.GemasCapturadas      = 0;
+        this.SaludActualNave      = 100;
+        this.totalTime            = 60;
+    },
+
+    preload: function() {
+        game.load.image('fondo',          'fondo.jpg');
+        game.load.image('platilloabajo',  'platilloabajo.png');
+        game.load.image('platilloarriba', 'platilloarriba.png');
+        game.load.image('nave',           'nave.png');
+        game.load.image('nave1',          'nave1.png');
+        game.load.image('nave2',          'nave2.png');
+        game.load.image('nave3',          'nave3.png');
+        game.load.image('nave4',          'nave4.png');
+        game.load.image('meteoritos',     'meteorito.png');
+        game.load.image('meteoritos2',    'meteorito2.png');
+        game.load.image('explosion',      'explosion.png');
+        game.load.image('explosion2',     'explosion2.png');
+        game.load.image('galaxia',        'galaxia.png');
+        game.load.image('estrella1',      'estrella1.png');
+        game.load.image('estrella2',      'estrella2.png');
+        game.load.image('estrella3',      'estrella3.png');
+        game.load.image('gema',           'gema.png');
+        game.load.image('proyectil',      'proyectil.png');
+    },
+
+    create: function() {
+        // Fondo y galaxia decorativa
+        game.add.sprite(0, 0, 'fondo');
+
+        this.galaxia = game.add.sprite(game.width / 2, game.height / 2, 'galaxia');
+        this.galaxia.anchor.setTo(0.5);
+        this.galaxia.alpha = 0.9;
+
+        this.platilloabajo = game.add.sprite(
+            game.rnd.integerInRange(-1600, -800),
+            game.height - 150,
+            'platilloabajo'
+        );
+
+        // ── Estrellas de fondo ──────────────────────────────────────────────
+        this.EstrellasArray = [];
+        for (var i = 0; i < EstrellasTotales; i++) {
+            var s = game.add.sprite(
+                game.rnd.integerInRange(1, game.width),
+                game.rnd.integerInRange(1, game.height),
+                'estrella' + game.rnd.integerInRange(1, 3)
+            );
+            s.vel   = 0.3 + game.rnd.frac() * 3;
+            s.alpha = 0.1 + game.rnd.frac();
+            s.scale.setTo(0.1 + game.rnd.frac() / 4);
+            this.EstrellasArray[i] = s;
+        }
+
+        // ── Gemas ───────────────────────────────────────────────────────────
+        this.GemasArray = [];
+        for (var i = 0; i < GemasTotales; i++) {
+            var g = game.add.sprite(
+                game.rnd.integerInRange(1, game.width),
+                game.rnd.integerInRange(-800, -100),
+                'gema'
+            );
+            g.anchor.setTo(0.5);
+            g.vel = 1 + game.rnd.frac() * 5;
+            this.GemasArray[i] = g;
+        }
+
+        // ── Proyectil ───────────────────────────────────────────────────────
+        this.proyectil = game.add.image(game.width / 2, game.height / 2, 'proyectil');
+        this.proyectil.anchor.setTo(0.5);
+        this.proyectil.scale.setTo(0.7);
+
+        // ── Naves (una por dirección) ────────────────────────────────────────
+        var cx = game.width / 2;
+        var cy = game.height / 2;
+
+        this.nave4 = game.add.image(cx, cy, 'nave4'); this.nave4.anchor.setTo(0.5);
+        this.nave3 = game.add.image(cx, cy, 'nave3'); this.nave3.anchor.setTo(0.5);
+        this.nave2 = game.add.image(cx, cy, 'nave2'); this.nave2.anchor.setTo(0.5);
+        this.nave1 = game.add.image(cx, cy, 'nave1'); this.nave1.anchor.setTo(0.5);
+        this.nave  = game.add.image(cx, cy, 'nave');  this.nave.anchor.setTo(0.5);
+
+        this.nave1.visible = false;
+        this.nave2.visible = false;
+        this.nave3.visible = false;
+        this.nave4.visible = false;
+
+        // ── Meteoritos destructibles ─────────────────────────────────────────
+        this.meteoritos = [];
+        for (var i = 0; i < MeteoritosTotales; i++) {
+            var m = game.add.sprite(
+                game.rnd.integerInRange(1, game.width),
+                game.rnd.integerInRange(-700, 0),
+                'meteoritos'
+            );
+            m.scale.setTo(0.3 + game.rnd.frac() * 1.2);
+            m.anchor.setTo(0.5);
+            m.vel = 3 + game.rnd.frac() * 7;
+            this.meteoritos[i] = m;
+        }
+
+        // ── Meteoritos indestructibles ───────────────────────────────────────
+        this.MeteoritosIndestructiblesArray = [];
+        for (var i = 0; i < MeteoritosIndestructibles; i++) {
+            var mi = game.add.sprite(
+                game.rnd.integerInRange(1, game.width),
+                game.rnd.integerInRange(-700, 0),
+                'meteoritos2'
+            );
+            mi.scale.setTo(0.3 + game.rnd.frac() * 1.2);
+            mi.anchor.setTo(0.5);
+            mi.vel = 3 + game.rnd.frac() * 7;
+            this.MeteoritosIndestructiblesArray[i] = mi;
+        }
+
+        // ── Pool de explosiones para meteoritos ──────────────────────────────
+        this.explosionGroup = game.add.group();
+        for (var i = 0; i < 10; i++) {
+            var e = this.explosionGroup.create(0, 0, 'explosion');
+            e.anchor.setTo(0.5);
+            e.tweenScale = game.add.tween(e.scale).to(
+                { x: [0.5, 1, 0.7], y: [0.5, 1, 0.7] },
+                600, Phaser.Easing.Exponential.Out, false, 0, 0, false
+            );
+            e.tweenAlpha = game.add.tween(e).to(
+                { alpha: [1, 0.6, 0.2] },
+                600, Phaser.Easing.Exponential.Out, false, 0, 0, false
+            );
+            e.kill();
+        }
+
+        // ── Pool de explosiones para gemas ───────────────────────────────────
+        this.explosionGroup2 = game.add.group();
+        for (var i = 0; i < 5; i++) {
+            var e2 = this.explosionGroup2.create(0, 0, 'explosion2');
+            e2.anchor.setTo(0.5);
+            e2.tweenScale = game.add.tween(e2.scale).to(
+                { x: [0.5, 1.3, 0.7], y: [0.5, 1.3, 0.7] },
+                600, Phaser.Easing.Exponential.Out, false, 0, 0, false
+            );
+            e2.tweenAlpha = game.add.tween(e2).to(
+                { alpha: [1, 0.6, 0.2] },
+                600, Phaser.Easing.Exponential.Out, false, 0, 0, false
+            );
+            e2.kill();
+        }
+
+        // ── HUD (barra superior) ─────────────────────────────────────────────
+        var hudBmp = game.add.bitmapData(game.width, 58);
+        hudBmp.ctx.fillStyle = '#000000';
+        hudBmp.ctx.fillRect(0, 0, game.width, 58);
+        var hud = game.add.sprite(0, 0, hudBmp);
+        hud.alpha = 0.7;
+
+        var styleBlanco = { font: 'bold 20pt Arial', fill: '#ffffff', align: 'center' };
+        var styleRojo   = { font: 'bold 20pt Arial', fill: '#EF5350', align: 'center' };
+        var styleAzul   = { font: 'bold 20pt Arial', fill: '#42A5F5', align: 'center' };
+
+        this.TextoSaludNave = game.add.text(150, 30, 'Salud: 100', styleBlanco);
+        this.TextoSaludNave.anchor.setTo(0.5);
+
+        this.PuntajeGem = game.add.text(game.width / 2, 30, 'Gemas: 0/' + GemasTotales, styleRojo);
+        this.PuntajeGem.anchor.setTo(0.5);
+
+        this.timerText = game.add.text(game.width - 200, 30, 'Tiempo: ' + this.totalTime, styleAzul);
+        this.timerText.anchor.setTo(0.5);
+
+        // ── Temporizador ─────────────────────────────────────────────────────
+        this.timerGameOver = game.time.events.loop(Phaser.Timer.SECOND, function() {
+            if (this.juegoTerminado) return;
+            this.totalTime--;
+            this.timerText.text = 'Tiempo: ' + this.totalTime;
+            if (this.totalTime <= 0) {
+                game.time.events.remove(this.timerGameOver);
+                this.juegoTerminado = true;
+                this.showFinalMessage('PERDISTE!\nTiempo Agotado\nPresiona F5 para Reiniciar');
+            }
+        }, this);
+
+        // ── Teclado ───────────────────────────────────────────────────────────
+        this.cursor = game.input.keyboard.createCursorKeys();
+    },
+
+    // ── Helpers de colisión ──────────────────────────────────────────────────
+    getBoundsnave: function() {
+        var w = Math.abs(this.nave.width) / 2;
+        var h = this.nave.height;
+        return new Phaser.Rectangle(this.nave.x - w / 2, this.nave.y - h / 2, w, h);
+    },
+
+    getBoundsProyectil: function() {
+        var w = Math.abs(this.proyectil.width) / 2;
+        var h = this.proyectil.height;
+        return new Phaser.Rectangle(
+            this.proyectil.x - w / 2 + 5,
+            this.proyectil.y - h / 2 + 5,
+            w - 5, h - 5
+        );
+    },
+
+    getBoundsmeteorito: function(m) {
+        return new Phaser.Rectangle(m.left, m.top, m.width, m.height);
+    },
+
+    getBoundsGemas: function(g) {
+        return new Phaser.Rectangle(g.left, g.top, g.width, g.height);
+    },
+
+    isRectanglesOverlapping: function(r1, r2) {
+        if (r1.x > r2.x + r2.width  || r2.x > r1.x + r1.width)  return false;
+        if (r1.y > r2.y + r2.height || r2.y > r1.y + r1.height) return false;
+        return true;
+    },
+
+    // ── Daño y puntaje ───────────────────────────────────────────────────────
+    increaseScore: function() {
+        this.TextoSaludNave.text = 'Salud: ' + this.SaludActualNave;
+        this.MeteoritosImpactados++;
+        if (this.SaludActualNave <= 0) {
+            game.time.events.remove(this.timerGameOver);
+            this.juegoTerminado = true;
+            this.showFinalMessage('PERDISTE!\nLos meteoritos te aniquilaron\nPresiona F5 para Reiniciar');
+        }
+    },
+
+    GemasPuntajeIncremento: function() {
+        this.PuntajeActualGema++;
+        this.GemasCapturadas++;
+        this.PuntajeGem.text     = 'Gemas: ' + this.PuntajeActualGema + '/' + GemasTotales;
+        this.TextoSaludNave.text = 'Salud: ' + this.SaludActualNave;
+        if (this.PuntajeActualGema >= GemasTotales) {
+            game.time.events.remove(this.timerGameOver);
+            this.juegoTerminado = true;
+            this.showFinalMessage('GANASTE!\nCapturaste todas las Gemas\nPresiona F5 para Reiniciar');
+        }
+    },
+
+    showFinalMessage: function(msg) {
+        var bmp = game.add.bitmapData(game.width, game.height);
+        var bgColor, txtColor;
+
+        if (this.PuntajeActualGema >= GemasTotales) {
+            bgColor = '#006000'; txtColor = '#FFF178';
+        } else if (this.totalTime <= 0) {
+            bgColor = '#000060'; txtColor = '#4fc3f7';
+        } else {
+            bgColor = '#600000'; txtColor = '#f7043f';
+        }
+
+        bmp.ctx.fillStyle = bgColor;
+        bmp.ctx.fillRect(0, 0, game.width, game.height);
+        var bg = game.add.sprite(0, 0, bmp);
+        bg.alpha = 0.5;
+
+        var style = {
+            font: 'bold 40pt Arial',
+            fill: txtColor,
+            align: 'center',
+            wordWrap: true,
+            wordWrapWidth: game.width - 100
+        };
+        var txt = game.add.text(game.width / 2, game.height / 2, msg, style);
+        txt.anchor.setTo(0.5);
+    },
+
+    // ── Dispara una explosión del pool ────────────────────────────────────────
+    _spawnExplosion: function(group, x, y) {
+        var exp = group.getFirstDead();
+        if (exp) {
+            exp.reset(x, y);
+            exp.tweenScale.start();
+            exp.tweenAlpha.start();
+            exp.tweenAlpha.onComplete.addOnce(function() { exp.kill(); });
+        }
+    },
+
+    // ── Loop principal ────────────────────────────────────────────────────────
+    update: function() {
+        if (this.juegoTerminado) return;
+
+        // Movimiento nave
+        this.nave.visible  = true;
+        this.nave1.visible = false;
+        this.nave2.visible = false;
+        this.nave3.visible = false;
+        this.nave4.visible = false;
+
+        if (this.cursor.right.isDown && this.nave.x + this.nave.width / 2 <= game.width) {
+            this.nave.x += 10;
+            this.nave.visible = false; this.nave2.visible = true;
+            this.nave2.x = this.nave.x; this.nave2.y = this.nave.y;
+        } else if (this.cursor.left.isDown && this.nave.x >= this.nave.width / 2) {
+            this.nave.x -= 10;
+            this.nave.visible = false; this.nave3.visible = true;
+            this.nave3.x = this.nave.x; this.nave3.y = this.nave.y;
+        } else if (this.cursor.up.isDown && this.nave.y >= this.nave.height / 2) {
+            this.nave.y -= 10;
+            this.nave.visible = false; this.nave1.visible = true;
+            this.nave1.x = this.nave.x; this.nave1.y = this.nave.y;
+        } else if (this.cursor.down.isDown && this.nave.y + this.nave.height / 2 <= game.height) {
+            this.nave.y += 10;
+            this.nave.visible = false; this.nave4.visible = true;
+            this.nave4.x = this.nave.x; this.nave4.y = this.nave.y;
+        }
+
+        // Proyectil
+        this.proyectil.y -= 25;
+        this.proyectil.x += Math.cos(this.proyectil.y / 45) * 10;
+        if (this.proyectil.y < 0) {
+            this.proyectil.y = this.nave.y - 90;
+            this.proyectil.x = this.nave.x;
+        }
+
+        // Scroll estrellas
+        for (var i = 0; i < EstrellasTotales; i++) {
+            var s = this.EstrellasArray[i];
+            s.y += s.vel;
+            if (s.y > game.height + 50) {
+                s.y = game.rnd.integerInRange(-200, 0);
+                s.x = game.rnd.integerInRange(1, game.width);
+            }
+        }
+
+        // Scroll meteoritos destructibles
+        for (var i = 0; i < MeteoritosTotales; i++) {
+            var m = this.meteoritos[i];
+            m.y += m.vel;
+            if (m.y > game.height + 160) {
+                m.y = game.rnd.integerInRange(-360, 0);
+                m.x = game.rnd.integerInRange(1, game.width);
+                m.visible = true;
+            }
+        }
+
+        // Scroll meteoritos indestructibles
+        for (var i = 0; i < MeteoritosIndestructibles; i++) {
+            var mi = this.MeteoritosIndestructiblesArray[i];
+            mi.y += mi.vel;
+            if (mi.y > game.height + 160) {
+                mi.y = game.rnd.integerInRange(-360, 0);
+                mi.x = game.rnd.integerInRange(1, game.width);
+                mi.visible = true;
+            }
+        }
+
+        // Scroll gemas
+        for (var i = 0; i < GemasTotales; i++) {
+            var g = this.GemasArray[i];
+            g.y += g.vel;
+            if (g.y > game.height + 500) {
+                g.y = game.rnd.integerInRange(-500, 100);
+                g.x = game.rnd.integerInRange(1, game.width);
+                g.visible = true;
+            }
+        }
+
+        // Rotar galaxia
+        this.galaxia.angle += 0.1;
+
+        // Calcular bounding boxes una sola vez por frame
+        var rectnave = this.getBoundsnave();
+        var rectproy = this.getBoundsProyectil();
+
+        // Colisión: nave vs meteoritos destructibles
+        for (var i = 0; i < MeteoritosTotales; i++) {
+            if (!this.meteoritos[i].visible) continue;
+            if (this.isRectanglesOverlapping(rectnave, this.getBoundsmeteorito(this.meteoritos[i]))) {
+                this.SaludActualNave -= Math.trunc(this.meteoritos[i].scale.x * 5);
+                if (this.SaludActualNave < 0) this.SaludActualNave = 0;
+                this._spawnExplosion(this.explosionGroup, this.meteoritos[i].x, this.meteoritos[i].y);
+                this.meteoritos[i].visible = false;
+                this.increaseScore();
+                if (this.juegoTerminado) return;
+            }
+        }
+
+        // Colisión: nave vs meteoritos indestructibles
+        for (var i = 0; i < MeteoritosIndestructibles; i++) {
+            if (!this.MeteoritosIndestructiblesArray[i].visible) continue;
+            if (this.isRectanglesOverlapping(rectnave, this.getBoundsmeteorito(this.MeteoritosIndestructiblesArray[i]))) {
+                this.SaludActualNave -= Math.trunc(this.MeteoritosIndestructiblesArray[i].scale.x * 7);
+                if (this.SaludActualNave < 0) this.SaludActualNave = 0;
+                this._spawnExplosion(this.explosionGroup, this.MeteoritosIndestructiblesArray[i].x, this.MeteoritosIndestructiblesArray[i].y);
+                this.MeteoritosIndestructiblesArray[i].visible = false;
+                this.increaseScore();
+                if (this.juegoTerminado) return;
+            }
+        }
+
+        // Colisión: proyectil vs meteoritos destructibles
+        for (var i = 0; i < MeteoritosTotales; i++) {
+            if (!this.meteoritos[i].visible) continue;
+            if (this.isRectanglesOverlapping(rectproy, this.getBoundsmeteorito(this.meteoritos[i]))) {
+                this._spawnExplosion(this.explosionGroup, this.proyectil.x, this.proyectil.y);
+                this.meteoritos[i].visible = false;
+                this.proyectil.y = this.nave.y - 90;
+                this.proyectil.x = this.nave.x;
+            }
+        }
+
+        // Colisión: nave vs gemas
+        for (var i = 0; i < GemasTotales; i++) {
+            if (!this.GemasArray[i].visible) continue;
+            if (this.isRectanglesOverlapping(rectnave, this.getBoundsGemas(this.GemasArray[i]))) {
+                this.SaludActualNave = Math.min(100, this.SaludActualNave + 3);
+                this._spawnExplosion(this.explosionGroup2, this.GemasArray[i].x, this.GemasArray[i].y);
+                this.GemasArray[i].visible = false;
+                this.GemasPuntajeIncremento();
+                if (this.juegoTerminado) return;
+            }
+        }
+    }
+
+}; // fin EstadosGalaxyGem
+
+// ─── Iniciar Phaser ──────────────────────────────────────────────────────────
+// Se usa "game" en vez de "GalaxyGem" para evitar la referencia circular
+// (GalaxyGem se usaba dentro del objeto antes de ser declarado).
+// Phaser.AUTO elige WebGL si está disponible, Canvas si no.
+// El estado se pasa directamente como 5to argumento → arranca automáticamente.
+var game = new Phaser.Game(1280, 720, Phaser.AUTO, '', EstadosGalaxyGem);
+
+</script>
+</body>
+</html>
