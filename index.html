@@ -24,7 +24,7 @@
     <script src="https://w.soundcloud.com/player/api.js"></script>
 </head>
 <body>
-<!-- <div id="overlay">HAGA CLIC PARA INICIAR GALAXYGEM</div> fue descartado por max--> 
+
 <script src="/phaser-ce-2.9.2.min.js"></script>
 
 <!-- me encargue de ordenar el codigo y hacerlo mas legible, tipo que horrible era buscar algo y no encontrarlo
@@ -241,7 +241,17 @@ var EstadosGalaxyGem = {
 
         // ── Teclado ───────────────────────────────────────────────────────────\\
         this.cursor = game.input.keyboard.createCursorKeys();
-        // this.musicaIniciada = false; // Comentado
+        
+        // Activar audio y música en el primer clic dentro del juego
+        game.input.onDown.addOnce(function() {
+            if (game.sound.context && game.sound.context.state === 'suspended') {
+                game.sound.context.resume();
+            }
+            if (window.SC) {
+                var widget = SC.Widget(document.getElementById('sc-widget'));
+                widget.play();
+            }
+        }, this);
     },
 
     // ── Helpers de colisión ──────────────────────────────────────────────────\\
@@ -431,7 +441,7 @@ var EstadosGalaxyGem = {
             if (!this.meteoritos[i].visible) continue;
             if (this.isRectanglesOverlapping(rectnave, this.getBoundsmeteorito(this.meteoritos[i]))) {
                 // Se aumentó el multiplicador porque ahora los meteoritos son muy pequeños (scale ~0.05)
-                this.SaludActualNave -= Math.trunc(this.meteoritos[i].scale.x * 100);
+                this.SaludActualNave -= Math.trunc(this.meteoritos[i].scale.x * 200);
                 if (this.SaludActualNave < 0) this.SaludActualNave = 0;
                 this._spawnExplosion(this.explosionGroup, this.meteoritos[i].x, this.meteoritos[i].y);
                 this.meteoritos[i].visible = false;
@@ -445,7 +455,7 @@ var EstadosGalaxyGem = {
             if (!this.MeteoritosIndestructiblesArray[i].visible) continue;
             if (this.isRectanglesOverlapping(rectnave, this.getBoundsmeteorito(this.MeteoritosIndestructiblesArray[i]))) {
                 // Corregido: multiplicador mayor para escalas pequeñas
-                this.SaludActualNave -= Math.trunc(this.MeteoritosIndestructiblesArray[i].scale.x * 190);
+                this.SaludActualNave -= Math.trunc(this.MeteoritosIndestructiblesArray[i].scale.x * 290);
                 if (this.SaludActualNave < 0) this.SaludActualNave = 0;
                 this._spawnExplosion(this.explosionGroup, this.MeteoritosIndestructiblesArray[i].x, this.MeteoritosIndestructiblesArray[i].y);
                 this.MeteoritosIndestructiblesArray[i].visible = false;
@@ -487,22 +497,10 @@ var EstadosGalaxyGem = {
 // El estado se pasa directamente como 5to argumento → arranca automáticamente.
 var game = new Phaser.Game(1280, 720, Phaser.AUTO, '', EstadosGalaxyGem);
 
-// Lógica para quitar el overlay
-var overlay = document.getElementById('overlay');
-if (overlay) {
-    overlay.addEventListener('click', function() {
-        this.style.display = 'none';
-        // Si el AudioContext de Phaser está suspendido, lo reanudamos
-        if (game.sound.context && game.sound.context.state === 'suspended') {
-            game.sound.context.resume();
-        }
-    });
-}
-
 </script>
 
-<!-- Reproductor de música SoundCloud (Oculto) -->
-<div id="musica-contenedor" style="position: absolute; left: -9999px; height: 1px; width: 1px; overflow: hidden;">
+<!-- Reproductor de música SoundCloud (Oculto - Dimensiones ajustadas para evitar IndexSizeError) -->
+<div id="musica-contenedor" style="position: absolute; left: -9999px; height: 100px; width: 300px; overflow: hidden;">
     <iframe id="sc-widget" width="100%" height="450" scrolling="no" frameborder="no" allow="autoplay; encrypted-media" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/soundcloud%253Atracks%253A2049212420&color=%231d1914&auto_play=true&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true"></iframe>
     <div style="font-size: 10px; color: #cccccc;line-break: anywhere;word-break: normal;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; font-family: Interstate,Lucida Grande,Lucida Sans Unicode,Lucida Sans,Garuda,Verdana,Tahoma,sans-serif;font-weight: 100;">
         <a href="https://soundcloud.com/gheorghe-gabori" title="Savage_beast" target="_blank" style="color: #cccccc; text-decoration: none;">Savage_beast</a> · 
