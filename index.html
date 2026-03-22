@@ -44,15 +44,11 @@ var EstadosGalaxyGem = {
 
         // mi parte
         game.load.image('fondo',          'assets/fondo.png');
-        game.load.image('platilloabajo',  'platilloabajo.png');
-        game.load.image('platilloarriba', 'platilloarriba.png');
-        game.load.image('nave',           'nave.png');
-        game.load.image('nave1',          'nave1.png');
-        game.load.image('nave2',          'nave2.png');
-        game.load.image('nave3',          'nave3.png');
-        game.load.image('nave4',          'nave4.png');
-        game.load.image('meteoritos',     'meteorito.png');
-        game.load.image('meteoritos2',    'meteorito2.png');
+        game.load.image('platilloabajo',  'assets/platilloabajo.png');
+        game.load.image('platilloarriba', 'assets/platilloarriba.png');
+        game.load.image('nave',           'assets/personaje1.png');
+        game.load.image('meteoritos',     'assets/meteorito.png');
+        game.load.image('meteoritos2',    'assets/meteorito2.png');
         //de aqui para arriva los cambios lo hago yo, no toques nada por favor
 
         game.load.image('explosion',      'assets/explosion.png');
@@ -113,20 +109,13 @@ var EstadosGalaxyGem = {
         this.proyectil.anchor.setTo(0.5);
         this.proyectil.scale.setTo(0.7);
 
-        // ── Naves (una por dirección) ────────────────────────────────────────\\
+        // ── Nave (única con rotación) ────────────────────────────────────────\\
         var cx = game.width / 2;
         var cy = game.height / 2;
 
-        this.nave4 = game.add.image(cx, cy, 'nave4'); this.nave4.anchor.setTo(0.5);
-        this.nave3 = game.add.image(cx, cy, 'nave3'); this.nave3.anchor.setTo(0.5);
-        this.nave2 = game.add.image(cx, cy, 'nave2'); this.nave2.anchor.setTo(0.5);
-        this.nave1 = game.add.image(cx, cy, 'nave1'); this.nave1.anchor.setTo(0.5);
-        this.nave  = game.add.image(cx, cy, 'nave');  this.nave.anchor.setTo(0.5);
-
-        this.nave1.visible = false;
-        this.nave2.visible = false;
-        this.nave3.visible = false;
-        this.nave4.visible = false;
+        this.nave = game.add.image(cx, cy, 'nave');
+        this.nave.anchor.setTo(0.5);
+        this.nave.scale.setTo(0.13); // Ajuste de tamaño anterior
 
         // ── Meteoritos destructibles ─────────────────────────────────────────\\
         this.meteoritos = [];
@@ -321,29 +310,20 @@ var EstadosGalaxyGem = {
     update: function() {
         if (this.juegoTerminado) return;
 
-        // Movimiento nave
-        this.nave.visible  = true;
-        this.nave1.visible = false;
-        this.nave2.visible = false;
-        this.nave3.visible = false;
-        this.nave4.visible = false;
+        this.nave.angle = 0; 
 
         if (this.cursor.right.isDown && this.nave.x + this.nave.width / 2 <= game.width) {
             this.nave.x += 10;
-            this.nave.visible = false; this.nave2.visible = true;
-            this.nave2.x = this.nave.x; this.nave2.y = this.nave.y;
+            this.nave.angle = 20; 
         } else if (this.cursor.left.isDown && this.nave.x >= this.nave.width / 2) {
             this.nave.x -= 10;
-            this.nave.visible = false; this.nave3.visible = true;
-            this.nave3.x = this.nave.x; this.nave3.y = this.nave.y;
-        } else if (this.cursor.up.isDown && this.nave.y >= this.nave.height / 2) {
+            this.nave.angle = -20; // Se inclina un poquito a la izquierda y asi
+        }
+
+        if (this.cursor.up.isDown && this.nave.y >= this.nave.height / 2) {
             this.nave.y -= 10;
-            this.nave.visible = false; this.nave1.visible = true;
-            this.nave1.x = this.nave.x; this.nave1.y = this.nave.y;
         } else if (this.cursor.down.isDown && this.nave.y + this.nave.height / 2 <= game.height) {
             this.nave.y += 10;
-            this.nave.visible = false; this.nave4.visible = true;
-            this.nave4.x = this.nave.x; this.nave4.y = this.nave.y;
         }
 
         // Proyectil
