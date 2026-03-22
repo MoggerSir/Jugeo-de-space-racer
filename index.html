@@ -32,6 +32,13 @@
 
 <script>
 var game; // Declaración global para evitar errores de ámbito en init/preload/create
+var scWidget; // Widget de SoundCloud (global para control constante)
+
+// Captura de errores para evitar que el juego se congele en silencio
+window.onerror = function(msg, url, lineNo, columnNo, error) {
+    console.error('ERROR DETECTADO: ', msg, ' en línea ', lineNo);
+    return false;
+};
 
 // ─── Constantes globales ────────────────────────────────────────────────────\\
 var MeteoritosTotales         = 45;
@@ -253,8 +260,8 @@ var EstadosGalaxyGem = {
                 game.sound.context.resume();
             }
             if (window.SC) {
-                var widget = SC.Widget(document.getElementById('sc-widget'));
-                widget.play();
+                if (!scWidget) scWidget = SC.Widget(document.getElementById('sc-widget'));
+                scWidget.play();
             }
         }, this);
 
@@ -321,9 +328,8 @@ var EstadosGalaxyGem = {
     showFinalMessage: function(msg) {
         // Pausar música de SoundCloud al terminar el juego
         if (window.SC) {
-            var iframeElement = document.getElementById('sc-widget');
-            var widget = SC.Widget(iframeElement);
-            widget.pause();
+            if (!scWidget) scWidget = SC.Widget(document.getElementById('sc-widget'));
+            scWidget.pause();
         }
 
         var bmp = game.add.bitmapData(game.width, game.height);
@@ -506,8 +512,8 @@ var EstadosGalaxyGem = {
 // (GalaxyGem se usaba dentro del objeto antes de ser declarado).
 // Phaser.AUTO elige WebGL si está disponible, Canvas si no.
 // El estado se pasa directamente como 5to argumento → arranca automáticamente.
-// ¡Y despega!
-game = new Phaser.Game(1280, 720, Phaser.AUTO, '', EstadosGalaxyGem);
+// ¡Y despega! Usando CANVAS para mayor estabilidad en todos los equipos
+game = new Phaser.Game(1280, 720, Phaser.CANVAS, '', EstadosGalaxyGem);
 
 </script>
 
