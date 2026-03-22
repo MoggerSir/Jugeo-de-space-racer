@@ -62,7 +62,7 @@ var EstadosGalaxyGem = {
         // mi parte
         game.load.image('fondo',          'assets/fondo.png');
         // game.load.image('platilloabajo',  'assets/platilloabajo.png');
-        // game.load.image('platilloarriba', 'assets/platilloarriba.png');
+        // game.load.image('platilloarriba', 'assets/platilloarriba.png'); //no por el momento\\
         game.load.image('nave',           'assets/personaje1.png');
         game.load.image('meteoritos',     'assets/meteorito.png');
         game.load.image('meteoritos2',    'assets/meteorito2.png');
@@ -84,9 +84,10 @@ var EstadosGalaxyGem = {
         //──musica de fondo──────────────────agregue esto tambien────────────────────────\\
         // this.musica = game.add.audio('musica'); 
         // this.musica.loop = true;                   
-        // this.musica.play(); //hasta aca──────────────────────────────────────────────────────────\\   
+        // this.musica.play(); 
+        //hasta aca──────────────────────────────────────────────────────────\\   
 
-        // Fondo y galaxia decorativa
+        // Fondo de viltrum explotando
         var miFondo = game.add.sprite(0, 0, 'fondo');
         miFondo.width = game.width;
         miFondo.height = game.height;
@@ -97,7 +98,7 @@ var EstadosGalaxyGem = {
 
         /*
         this.platilloabajo = game.add.sprite(
-            game.rnd.integerInRange(-1600, -800),
+            game.rnd.integerInRange(-1600, -800),   //causaba muchos bugs, por eso lo comente. J-
             game.height - 150,
             'platilloabajo'
         );
@@ -206,7 +207,7 @@ var EstadosGalaxyGem = {
             e2.kill();
         }
 
-        // ── HUD (barra superior) ─────────────────────────────────────────────\\
+        // ──(barra superior) ─────────────────────────────────────────────\\
         var hudBmp = game.add.bitmapData(game.width, 58);
         hudBmp.ctx.fillStyle = '#000000';
         hudBmp.ctx.fillRect(0, 0, game.width, 58);
@@ -444,7 +445,7 @@ var EstadosGalaxyGem = {
             if (!this.MeteoritosIndestructiblesArray[i].visible) continue;
             if (this.isRectanglesOverlapping(rectnave, this.getBoundsmeteorito(this.MeteoritosIndestructiblesArray[i]))) {
                 // Corregido: multiplicador mayor para escalas pequeñas
-                this.SaludActualNave -= Math.trunc(this.MeteoritosIndestructiblesArray[i].scale.x * 150);
+                this.SaludActualNave -= Math.trunc(this.MeteoritosIndestructiblesArray[i].scale.x * 190);
                 if (this.SaludActualNave < 0) this.SaludActualNave = 0;
                 this._spawnExplosion(this.explosionGroup, this.MeteoritosIndestructiblesArray[i].x, this.MeteoritosIndestructiblesArray[i].y);
                 this.MeteoritosIndestructiblesArray[i].visible = false;
