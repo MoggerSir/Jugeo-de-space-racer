@@ -31,6 +31,7 @@
     y tambien de que el juego funcionara correctamente, ya que antes no funcionaba o funcionaba raro-->
 
 <script>
+var game; // Declaración global para evitar errores de ámbito en init/preload/create
 
 // ─── Constantes globales ────────────────────────────────────────────────────\\
 var MeteoritosTotales         = 45;
@@ -59,7 +60,7 @@ var EstadosGalaxyGem = {
     // o no saber donde estaba, ahora esta todo ordenado y es mas facil encontrar lo que se busca \\
 
     preload: function() {
-        // Cargamos los assets. Si falta uno, prepárate para ver errores rojos en la consola
+        // Cargamos los assets. Si falta uno te pateo
 
         // mi parte
         game.load.image('fondo',          'assets/fondo.png');
@@ -83,7 +84,6 @@ var EstadosGalaxyGem = {
 
 
     create: function() {
-        // Aquí es donde empieza lo bueno. Construimos el mundo
         //──musica de fondo──────────────────agregue esto tambien────────────────────────\\
         // this.musica = game.add.audio('musica'); 
         // this.musica.loop = true;                   
@@ -144,7 +144,7 @@ var EstadosGalaxyGem = {
         var cx = game.width / 2;
         var cy = game.height / 2;
 
-        // Nuestra nave, la protagonista de esta historia espacial
+        // Nuestra nave, la protagonista de esta historia espacial osea el space racer
         this.nave = game.add.image(cx, cy, 'nave');
         this.nave.anchor.setTo(0.5);
         this.nave.scale.setTo(0.13); // Ajuste de tamaño anterior
@@ -232,7 +232,7 @@ var EstadosGalaxyGem = {
         this.timerText = game.add.text(game.width - 200, 30, 'Tiempo: ' + this.totalTime, styleAzul);
         this.timerText.anchor.setTo(0.5);
 
-        // El reloj que nos mete presión para ganar rápido
+        // ── Temporizador ─────────────────────────────────────────────────────\\
         this.timerGameOver = game.time.events.loop(Phaser.Timer.SECOND, function() {
             if (this.juegoTerminado) return;
             this.totalTime--;
@@ -257,31 +257,35 @@ var EstadosGalaxyGem = {
                 widget.play();
             }
         }, this);
+
+        // Preparamos los rectángulos de colisión para reutilizarlos (Optimización GC)
+        this.rectNave = new Phaser.Rectangle();
+        this.rectProy = new Phaser.Rectangle();
+        this.rectTemp = new Phaser.Rectangle();
     },
 
     // ── Helpers de colisión ──────────────────────────────────────────────────\\
     getBoundsnave: function() {
         var w = Math.abs(this.nave.width) / 2;
         var h = this.nave.height;
-        return new Phaser.Rectangle(this.nave.x - w / 2, this.nave.y - h / 2, w, h);
+        this.rectNave.setTo(this.nave.x - w / 2, this.nave.y - h / 2, w, h);
+        return this.rectNave;
     },
 
     getBoundsProyectil: function() {
         var w = Math.abs(this.proyectil.width) / 2;
         var h = this.proyectil.height;
-        return new Phaser.Rectangle(
+        this.rectProy.setTo(
             this.proyectil.x - w / 2 + 5,
             this.proyectil.y - h / 2 + 5,
             w - 5, h - 5
         );
+        return this.rectProy;
     },
 
-    getBoundsmeteorito: function(m) {
-        return new Phaser.Rectangle(m.left, m.top, m.width, m.height);
-    },
-
-    getBoundsGemas: function(g) {
-        return new Phaser.Rectangle(g.left, g.top, g.width, g.height);
+    getBoundsGeneric: function(obj) {
+        this.rectTemp.setTo(obj.left, obj.top, obj.width, obj.height);
+        return this.rectTemp;
     },
 
     // Función mágica que chequea si dos cosas se están chocando
@@ -361,7 +365,6 @@ var EstadosGalaxyGem = {
     },
 
     // ── Loop principal ────────────────────────────────────────────────────────\\
-    // El motor del juego. Se ejecuta 60 veces por segundo, ¡una locura!
     update: function() {
         if (this.juegoTerminado) return;
         // if (!this.musicaIniciada && (this.cursor.right.isDown || this.cursor.left.isDown || this.cursor.up.isDown || this.cursor.down.isDown)) {
@@ -447,7 +450,7 @@ var EstadosGalaxyGem = {
         // Colisión: nave vs meteoritos destructibles
         for (var i = 0; i < MeteoritosTotales; i++) {
             if (!this.meteoritos[i].visible) continue;
-            if (this.isRectanglesOverlapping(rectnave, this.getBoundsmeteorito(this.meteoritos[i]))) {
+            if (this.isRectanglesOverlapping(rectnave, this.getBoundsGeneric(this.meteoritos[i]))) {
                 // Se aumentó el multiplicador porque ahora los meteoritos son muy pequeños (scale ~0.05)
                 this.SaludActualNave -= Math.trunc(this.meteoritos[i].scale.x * 200);
                 if (this.SaludActualNave < 0) this.SaludActualNave = 0;
@@ -461,7 +464,7 @@ var EstadosGalaxyGem = {
         // Colisión: nave vs meteoritos indestructibles
         for (var i = 0; i < MeteoritosIndestructibles; i++) {
             if (!this.MeteoritosIndestructiblesArray[i].visible) continue;
-            if (this.isRectanglesOverlapping(rectnave, this.getBoundsmeteorito(this.MeteoritosIndestructiblesArray[i]))) {
+            if (this.isRectanglesOverlapping(rectnave, this.getBoundsGeneric(this.MeteoritosIndestructiblesArray[i]))) {
                 // Corregido: multiplicador mayor para escalas pequeñas
                 this.SaludActualNave -= Math.trunc(this.MeteoritosIndestructiblesArray[i].scale.x * 290);
                 if (this.SaludActualNave < 0) this.SaludActualNave = 0;
@@ -475,7 +478,7 @@ var EstadosGalaxyGem = {
         // Colisión: proyectil vs meteoritos destructibles
         for (var i = 0; i < MeteoritosTotales; i++) {
             if (!this.meteoritos[i].visible) continue;
-            if (this.isRectanglesOverlapping(rectproy, this.getBoundsmeteorito(this.meteoritos[i]))) {
+            if (this.isRectanglesOverlapping(rectproy, this.getBoundsGeneric(this.meteoritos[i]))) {
                 this._spawnExplosion(this.explosionGroup, this.proyectil.x, this.proyectil.y);
                 this.meteoritos[i].visible = false;
                 this.proyectil.y = this.nave.y - 90;
@@ -486,7 +489,7 @@ var EstadosGalaxyGem = {
         // Colisión: nave vs gemas
         for (var i = 0; i < GemasTotales; i++) {
             if (!this.GemasArray[i].visible) continue;
-            if (this.isRectanglesOverlapping(rectnave, this.getBoundsGemas(this.GemasArray[i]))) {
+            if (this.isRectanglesOverlapping(rectnave, this.getBoundsGeneric(this.GemasArray[i]))) {
                 this.SaludActualNave = Math.min(100, this.SaludActualNave + 3);
                 this._spawnExplosion(this.explosionGroup2, this.GemasArray[i].x, this.GemasArray[i].y);
                 this.GemasArray[i].visible = false;
@@ -503,8 +506,8 @@ var EstadosGalaxyGem = {
 // (GalaxyGem se usaba dentro del objeto antes de ser declarado).
 // Phaser.AUTO elige WebGL si está disponible, Canvas si no.
 // El estado se pasa directamente como 5to argumento → arranca automáticamente.
-// ¡Y despega! Aquí se lanza oficialmente la instancia del juego
-var game = new Phaser.Game(1280, 720, Phaser.AUTO, '', EstadosGalaxyGem);
+// ¡Y despega!
+game = new Phaser.Game(1280, 720, Phaser.AUTO, '', EstadosGalaxyGem);
 
 </script>
 
