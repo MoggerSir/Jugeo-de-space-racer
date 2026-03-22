@@ -54,10 +54,10 @@ var EstadosGalaxyGem = {
         game.load.image('explosion',      'assets/explosion.png');
         game.load.image('explosion2',     'assets/explosion2.png');
         game.load.image('galaxia',        'assets/galaxia.png');
-        game.load.image('estrella1',      'estrella1.png');
-        game.load.image('estrella2',      'estrella2.png');
-        game.load.image('estrella3',      'estrella3.png');
-        game.load.image('gema',           'gema.png');
+        game.load.image('estrella1',      'assets/estrella.png');
+        game.load.image('estrella2',      'assets/estrella.png');
+        game.load.image('estrella3',      'assets/estrella.png');
+        game.load.image('gema',           'assets/gemas.png');
         game.load.image('proyectil',      'assets/proyectil.png');
     },
 
@@ -100,6 +100,7 @@ var EstadosGalaxyGem = {
                 'gema'
             );
             g.anchor.setTo(0.5);
+            g.scale.setTo(0.2);
             g.vel = 1 + game.rnd.frac() * 5;
             this.GemasArray[i] = g;
         }
