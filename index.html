@@ -125,7 +125,8 @@ var EstadosGalaxyGem = {
                 game.rnd.integerInRange(-700, 0),
                 'meteoritos'
             );
-            m.scale.setTo(0.3 + game.rnd.frac() * 1.2);
+            // Tamaño reducido: entre 0.1 y 0.3 veces su tamaño original
+            m.scale.setTo(0.05 + game.rnd.frac() * 0.02);
             m.anchor.setTo(0.5);
             m.vel = 3 + game.rnd.frac() * 7;
             this.meteoritos[i] = m;
@@ -139,9 +140,10 @@ var EstadosGalaxyGem = {
                 game.rnd.integerInRange(-700, 0),
                 'meteoritos2'
             );
-            mi.scale.setTo(0.3 + game.rnd.frac() * 1.2);
+            // Tamaño reducido: entre 0.1 y 0.3 veces su tamaño original
+            mi.scale.setTo(0.1 + game.rnd.frac() * 0.02);
             mi.anchor.setTo(0.5);
-            mi.vel = 3 + game.rnd.frac() * 7;
+            mi.vel = 3 + game.rnd.frac() * 1;
             this.MeteoritosIndestructiblesArray[i] = mi;
         }
 
@@ -388,7 +390,8 @@ var EstadosGalaxyGem = {
         for (var i = 0; i < MeteoritosTotales; i++) {
             if (!this.meteoritos[i].visible) continue;
             if (this.isRectanglesOverlapping(rectnave, this.getBoundsmeteorito(this.meteoritos[i]))) {
-                this.SaludActualNave -= Math.trunc(this.meteoritos[i].scale.x * 5);
+                // Se aumentó el multiplicador porque ahora los meteoritos son muy pequeños (scale ~0.05)
+                this.SaludActualNave -= Math.trunc(this.meteoritos[i].scale.x * 100);
                 if (this.SaludActualNave < 0) this.SaludActualNave = 0;
                 this._spawnExplosion(this.explosionGroup, this.meteoritos[i].x, this.meteoritos[i].y);
                 this.meteoritos[i].visible = false;
@@ -401,7 +404,8 @@ var EstadosGalaxyGem = {
         for (var i = 0; i < MeteoritosIndestructibles; i++) {
             if (!this.MeteoritosIndestructiblesArray[i].visible) continue;
             if (this.isRectanglesOverlapping(rectnave, this.getBoundsmeteorito(this.MeteoritosIndestructiblesArray[i]))) {
-                this.SaludActualNave -= Math.trunc(this.MeteoritosIndestructiblesArray[i].scale.x * 7);
+                // Corregido: multiplicador mayor para escalas pequeñas
+                this.SaludActualNave -= Math.trunc(this.MeteoritosIndestructiblesArray[i].scale.x * 150);
                 if (this.SaludActualNave < 0) this.SaludActualNave = 0;
                 this._spawnExplosion(this.explosionGroup, this.MeteoritosIndestructiblesArray[i].x, this.MeteoritosIndestructiblesArray[i].y);
                 this.MeteoritosIndestructiblesArray[i].visible = false;
