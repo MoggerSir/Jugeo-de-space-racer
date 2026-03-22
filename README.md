@@ -1,10 +1,10 @@
-# GalaxyGem - Proyecto de Nave Espacial 🚀
+# GalaxyGem - Proyecto de Nave Espacial GAME!
 
 ![Vista del juego GalaxyGem](assets/Readme.png)
 
 ¡Hola! Este es el repositorio de **GalaxyGem**, un juego de naves estilo arcade desarrollado en colaboración con un gran amigo. El objetivo de este proyecto fue poner a prueba nuestras habilidades de programación y diseño de videojuegos, trabajando codo con codo en un repositorio de GitHub para crear algo divertido desde cero.
 
-## 🤝 Colaboración y Workflow
+## 🤝 Colaboración y Workflow!
 
 Este proyecto no lo hice solo. Fue una experiencia increíble trabajar junto a un amigo usando **Git** y **GitHub**.
 
