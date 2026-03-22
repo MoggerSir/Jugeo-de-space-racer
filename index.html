@@ -41,6 +41,7 @@ var GemasTotales              = 25;
 // ─── Estado principal del juego ─────────────────────────────────────────────\\
 var EstadosGalaxyGem = {
 
+    // Aquí reseteamos todo para que cada partida sea un lienzo en blanco (o algo así)
     init: function() {
         game.scale.scaleMode             = Phaser.ScaleManager.SHOW_ALL;
         game.scale.pageAlignHorizontally = true;
@@ -58,6 +59,7 @@ var EstadosGalaxyGem = {
     // o no saber donde estaba, ahora esta todo ordenado y es mas facil encontrar lo que se busca \\
 
     preload: function() {
+        // Cargamos los assets. Si falta uno, prepárate para ver errores rojos en la consola
 
         // mi parte
         game.load.image('fondo',          'assets/fondo.png');
@@ -81,6 +83,7 @@ var EstadosGalaxyGem = {
 
 
     create: function() {
+        // Aquí es donde empieza lo bueno. Construimos el mundo
         //──musica de fondo──────────────────agregue esto tambien────────────────────────\\
         // this.musica = game.add.audio('musica'); 
         // this.musica.loop = true;                   
@@ -141,6 +144,7 @@ var EstadosGalaxyGem = {
         var cx = game.width / 2;
         var cy = game.height / 2;
 
+        // Nuestra nave, la protagonista de esta historia espacial
         this.nave = game.add.image(cx, cy, 'nave');
         this.nave.anchor.setTo(0.5);
         this.nave.scale.setTo(0.13); // Ajuste de tamaño anterior
@@ -148,6 +152,7 @@ var EstadosGalaxyGem = {
         // ── Meteoritos destructibles ─────────────────────────────────────────\\
         this.meteoritos = [];
         for (var i = 0; i < MeteoritosTotales; i++) {
+            // Un loop para crear meteoritos. Cuidado, que 45 son un montón
             var m = game.add.sprite(
                 game.rnd.integerInRange(1, game.width),
                 game.rnd.integerInRange(-700, 0),
@@ -227,7 +232,7 @@ var EstadosGalaxyGem = {
         this.timerText = game.add.text(game.width - 200, 30, 'Tiempo: ' + this.totalTime, styleAzul);
         this.timerText.anchor.setTo(0.5);
 
-        // ── Temporizador ─────────────────────────────────────────────────────\\
+        // El reloj que nos mete presión para ganar rápido
         this.timerGameOver = game.time.events.loop(Phaser.Timer.SECOND, function() {
             if (this.juegoTerminado) return;
             this.totalTime--;
@@ -279,6 +284,7 @@ var EstadosGalaxyGem = {
         return new Phaser.Rectangle(g.left, g.top, g.width, g.height);
     },
 
+    // Función mágica que chequea si dos cosas se están chocando
     isRectanglesOverlapping: function(r1, r2) {
         if (r1.x > r2.x + r2.width  || r2.x > r1.x + r1.width)  return false;
         if (r1.y > r2.y + r2.height || r2.y > r1.y + r1.height) return false;
@@ -355,6 +361,7 @@ var EstadosGalaxyGem = {
     },
 
     // ── Loop principal ────────────────────────────────────────────────────────\\
+    // El motor del juego. Se ejecuta 60 veces por segundo, ¡una locura!
     update: function() {
         if (this.juegoTerminado) return;
         // if (!this.musicaIniciada && (this.cursor.right.isDown || this.cursor.left.isDown || this.cursor.up.isDown || this.cursor.down.isDown)) {
@@ -380,6 +387,7 @@ var EstadosGalaxyGem = {
 
         // Proyectil
         this.proyectil.y -= 25;
+        // La trayectoria del proyectil es un poco loca (usa Coseno para el zigzag)
         this.proyectil.x += Math.cos(this.proyectil.y / 45) * 10;
         if (this.proyectil.y < 0) {
             this.proyectil.y = this.nave.y - 90;
@@ -495,6 +503,7 @@ var EstadosGalaxyGem = {
 // (GalaxyGem se usaba dentro del objeto antes de ser declarado).
 // Phaser.AUTO elige WebGL si está disponible, Canvas si no.
 // El estado se pasa directamente como 5to argumento → arranca automáticamente.
+// ¡Y despega! Aquí se lanza oficialmente la instancia del juego
 var game = new Phaser.Game(1280, 720, Phaser.AUTO, '', EstadosGalaxyGem);
 
 </script>
