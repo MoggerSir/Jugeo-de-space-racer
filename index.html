@@ -69,7 +69,7 @@ var EstadosGalaxyGem = {
 
         // mi parte
         game.load.image('fondo',          'assets/fondo.png');
-        // game.load.image('platilloabajo',  'assets/platilloabajo.png');
+        game.load.image('platilloabajo',  'assets/platilloabajo.png');
         // game.load.image('platilloarriba', 'assets/platilloarriba.png'); //no por el momento\\
         game.load.image('nave',           'assets/personaje1.png');
         game.load.image('meteoritos',     'assets/meteorito.png');
@@ -108,13 +108,14 @@ var EstadosGalaxyGem = {
         this.galaxia.anchor.setTo(0.5);
         this.galaxia.alpha = 0.9;
 
-        /*
+        
         this.platilloabajo = game.add.sprite(
-            game.rnd.integerInRange(-1600, -800),   //causaba muchos bugs, por eso lo comente. J-
-            game.height - 150,
+            game.rnd.integerInRange(90, -10),
+            game.height - 250,
             'platilloabajo'
         );
-        */
+        this.platilloabajo.scale.setTo(0.3); // Ajuste de tamaño sugerido
+        
 
         // ── Estrellas de fondo ──────────────────────────────────────────────\\
         this.EstrellasArray = [];
