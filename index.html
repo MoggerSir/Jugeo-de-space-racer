@@ -255,20 +255,33 @@ var EstadosGalaxyGem = {
         this.cursor = game.input.keyboard.createCursorKeys();
         
         // Activar audio y música en el primer clic dentro del juego
-        game.input.onDown.addOnce(function() {
-            if (game.sound.context && game.sound.context.state === 'suspended') {
-                game.sound.context.resume();
-            }
-            if (window.SC) {
-                if (!scWidget) scWidget = SC.Widget(document.getElementById('sc-widget'));
-                scWidget.play();
-            }
-        }, this);
+        game.input.onDown.addOnce(this.activarAudio, this);
 
         // Preparamos los rectángulos de colisión para reutilizarlos (Optimización GC)
         this.rectNave = new Phaser.Rectangle();
         this.rectProy = new Phaser.Rectangle();
         this.rectTemp = new Phaser.Rectangle();
+    },
+
+    activarAudio: function() {
+        try {
+            if (game.sound && game.sound.context && game.sound.context.state === 'suspended') {
+                game.sound.context.resume().catch(function(e) {
+                    console.warn('No se pudo reanudar el AudioContext:', e);
+                });
+            }
+            if (window.SC && typeof SC.Widget === 'function') {
+                var widgetElement = document.getElementById('sc-widget');
+                if (widgetElement) {
+                    if (!scWidget) scWidget = SC.Widget(widgetElement);
+                    if (scWidget && typeof scWidget.play === 'function') {
+                        scWidget.play();
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('Error al activar el audio:', err);
+        }
     },
 
     // ── Helpers de colisión ──────────────────────────────────────────────────\\
@@ -373,10 +386,6 @@ var EstadosGalaxyGem = {
     // ── Loop principal ────────────────────────────────────────────────────────\\
     update: function() {
         if (this.juegoTerminado) return;
-        // if (!this.musicaIniciada && (this.cursor.right.isDown || this.cursor.left.isDown || this.cursor.up.isDown || this.cursor.down.isDown)) {
-        //     this.musica.play();
-        //     this.musicaIniciada = true;
-        // }
 
         this.nave.angle = 0; 
 
@@ -519,7 +528,7 @@ game = new Phaser.Game(1280, 720, Phaser.CANVAS, '', EstadosGalaxyGem);
 
 <!-- Reproductor de música SoundCloud (Oculto - Dimensiones ajustadas para evitar IndexSizeError) -->
 <div id="musica-contenedor" style="position: absolute; left: -9999px; height: 100px; width: 300px; overflow: hidden;">
-    <iframe id="sc-widget" width="100%" height="450" scrolling="no" frameborder="no" allow="autoplay; encrypted-media" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/soundcloud%253Atracks%253A2049212420&color=%231d1914&auto_play=true&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true"></iframe>
+    <iframe id="sc-widget" width="100%" height="450" scrolling="no" frameborder="no" allow="autoplay; encrypted-media" src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/soundcloud%253Atracks%253A2049212420&color=%231d1914&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true"></iframe>
     <div style="font-size: 10px; color: #cccccc;line-break: anywhere;word-break: normal;overflow: hidden;white-space: nowrap;text-overflow: ellipsis; font-family: Interstate,Lucida Grande,Lucida Sans Unicode,Lucida Sans,Garuda,Verdana,Tahoma,sans-serif;font-weight: 100;">
         <a href="https://soundcloud.com/gheorghe-gabori" title="Savage_beast" target="_blank" style="color: #cccccc; text-decoration: none;">Savage_beast</a> · 
         <a href="https://soundcloud.com/gheorghe-gabori/holy-fuck-tom-tom-slowed" title="Holy Fuck - TOM TOM (slowed + reverb) Invincible theme" target="_blank" style="color: #cccccc; text-decoration: none;">Holy Fuck - TOM TOM (slowed + reverb) Invincible theme</a>
