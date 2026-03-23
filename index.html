@@ -255,7 +255,15 @@ var EstadosGalaxyGem = {
         this.cursor = game.input.keyboard.createCursorKeys();
         
         // Activar audio y música en el primer clic dentro del juego
-        game.input.onDown.addOnce(this.activarAudio, this);
+        game.input.onDown.addOnce(function() {
+            if (game.sound.context && game.sound.context.state === 'suspended') {
+                game.sound.context.resume();
+            }
+            if (window.SC) {
+                if (!scWidget) scWidget = SC.Widget(document.getElementById('sc-widget'));
+                scWidget.play();
+            }
+        }, this);
 
         // Preparamos los rectángulos de colisión para reutilizarlos (Optimización GC)
         this.rectNave = new Phaser.Rectangle();
